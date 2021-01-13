@@ -1,4 +1,4 @@
-apiVersion: tekton.dev/v1alpha1
+apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: reverseword-build-triggertemplate
@@ -21,6 +21,8 @@ spec:
           value: $(params.gitrevision)
         - name: url
           value: $(params.gitrepositoryurl)
+        - name: sslVerify
+          value: "false"
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineRun
       metadata:
@@ -42,7 +44,7 @@ spec:
             resourceRef:
               name: reverse-words-image
 ---
-apiVersion: tekton.dev/v1alpha1
+apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: github-triggerbinding
@@ -53,17 +55,27 @@ spec:
     - name: gitrepositoryurl
       value: $(body.repository.url)
 ---
-apiVersion: tekton.dev/v1alpha1
+apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
   name: webhook
 spec:
-  serviceAccountName: pipeline
+  serviceAccountName: reversewords-pipeline
   triggers:
-    - binding:
-        name: github-triggerbinding
+    - name: git-reversewords-trigger
+      interceptors:
+        - github:
+            secretRef:
+              secretName: webhook-secret
+              secretKey: secret
+            eventTypes:
+              - push
+      bindings:
+        - name: pipeline-binding
+          ref: github-triggerbinding
       template:
         name: reverseword-build-triggertemplate
+      
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
