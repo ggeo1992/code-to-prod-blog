@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: reverse-words
-        image: quay.io/g_geo1992/tekton-reversewords:latest
+        image: quay.io/g_geo1992/reversewords:latest
         env:
         - name: RELEASE
           value: "Stage Release"
