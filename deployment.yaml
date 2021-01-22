@@ -7,6 +7,8 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+              - name: quay_user_pass
       containers:
       - name: reverse-words
         image: quay.io/g_geo1992/reverse-words:latest
