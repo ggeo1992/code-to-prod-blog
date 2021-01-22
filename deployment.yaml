@@ -8,7 +8,7 @@ spec:
   template:
     spec:
       imagePullSecrets:
-              - name quay-user-pass
+              - name: quay-user-pass
       containers:
       - name: reverse-words
         image: quay.io/g_geo1992/tekton-reversewords:cb1b6fcad6abe6b9c78490a909e23969cae4b512
