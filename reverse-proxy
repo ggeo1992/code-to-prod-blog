@@ -1,0 +1,36 @@
+log_format test '$remote_addr $server_name $remote_user [$time_local] "$request" '
+                           '$status $body_bytes_sent "$http_referer" '
+                           '"$http_user_agent" "$http_x_forwarded_for" $server_port '
+                           '$upstream_bytes_received "$sent_http_content_type" $host "$https" "$http_cookie" '
+                           '"$proxy_host" "$upstream_addr" ';
+
+log_format upstreamlog '[$time_local] $remote_addr - $remote_user - $server_name $host to: $upstream_addr: $request
+                        $status upstream_response_time $upstream_response_time msec $msec request_time $request_time';
+
+log_format proxy-pass '$remote_addr - $remote_user [$time_local] "$host$request_uri" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+server {
+        listen 80; 
+	listen 443 ssl;
+        listen [::]:80;
+	listen [::]:443 ssl;
+
+        root /var/www/reverse-proxy/;
+        index index.html index.htm index.nginx-debian.html;
+
+	access_log /var/log/nginx/proxy_pass.access.log proxy-pass;
+
+        server_name reverse-proxy www.reverse-proxy 5.12.236.244;
+	#server_name _;
+	include snippets/self-signed-reverse-proxy.conf;
+        location /webhook/ {
+                # try_files $uri $uri/ =404;
+		proxy_pass https://el-webhook-tekton-reversewords.apps-crc.testing;
+        }
+	location /webhook/argo/ {
+		proxy_pass https://argocd-server-argocd.apps-crc.testing:443/api/webhook;
+	}
+}
+#upstream crc-webhook { server el-webhook-tekton-reversewords.apps-crc.testing:443; }
